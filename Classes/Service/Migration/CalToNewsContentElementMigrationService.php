@@ -5,6 +5,7 @@ namespace WebentwicklerAt\NewsCalImporter\Service\Migration;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class CalToNewsContentElementMigrationService implements SingletonInterface
@@ -62,7 +63,7 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
                     'tt_content',
                     'uid = ' . (int)$contentElement['uid'],
                     [
-                        'list_type' => 'news_pi1',
+                        'list_type' => 'eventnewsplugin_pi1',
                         'pi_flexform' => $flexFormNews,
                         'newscalimporter_pi_flexform' => $contentElement['pi_flexform'],
                     ]
@@ -110,7 +111,7 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
                             'list' => 'News->list',
                         ],
                         $this->flexFormTools->getArrayValueByPath('data/sDEF/lDEF/allowedViews/vDEF', $flexFormCalArray),
-                        true
+                        false
                     );
                     break;
                 case 'data/sDEF/lDEF/settings.categoryConjunction/vDEF':
@@ -126,19 +127,23 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
                         $this->flexFormTools->getArrayValueByPath('data/s_Cat/lDEF/categoryMode/vDEF', $flexFormCalArray)
                     );
                     break;
-                case 'data/sDEF/lDEF/settings.category/vDEF':
+                case 'data/sDEF/lDEF/settings.categories/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_Cat/lDEF/categorySelection/vDEF', $flexFormCalArray);
-                    $calCategoryUids = GeneralUtility::intExplode(',', $value, true);
-                    $newsCategoryUids = [];
-                    foreach ($calCategoryUids as $calCategoryUid) {
-                        $newsCategoryUids[] = $this->convertCalCategoryUidToSysCategoryUid($calCategoryUid);
+                    if(isset($value)) {
+                        $calCategoryUids = GeneralUtility::intExplode(',', $value, true);
+                        $newsCategoryUids = [];
+                        foreach ($calCategoryUids as $calCategoryUid) {
+                            $newsCategoryUids[] = $this->convertCalCategoryUidToSysCategoryUid($calCategoryUid);
+                        }
+                        $value = implode(',', $newsCategoryUids);
+                        $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
                     }
-                    $value = implode(',', $newsCategoryUids);
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
                     break;
                 case 'data/additional/lDEF/settings.listPid/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_List_View/lDEF/listViewPid/vDEF', $flexFormCalArray);
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    if(isset($value)) {
+                        $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    }
                     break;
                 case 'data/sDEF/lDEF/settings.timeRestriction/vDEF':
                     $this->mapFlexFormValue(
@@ -172,30 +177,38 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
                     break;
                 case 'data/additional/lDEF/settings.limit/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_List_View/lDEF/maxEvents/vDEF', $flexFormCalArray);
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    if(isset($value)) {
+                        $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    }
                     break;
                 case 'data/additional/lDEF/settings.hidePagination/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_List_View/lDEF/usePageBrowser/vDEF', $flexFormCalArray);
-                    $value = ($value === '0') ? 1 : 0;
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    if(isset($value)) {
+                        $value = ($value === '0') ? 1 : 0;
+                        $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    }
                     break;
                 case 'data/additional/lDEF/settings.list.paginate.itemsPerPage/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_List_View/lDEF/recordsPerPage/vDEF', $flexFormCalArray);
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    if(isset($value)) {
+                        $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    }
                     break;
                 case 'data/additional/lDEF/settings.detailPid/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_Event_View/lDEF/eventViewPid/vDEF', $flexFormCalArray);
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    if(isset($value)) {
+                        $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    }
                     break;
                 case 'data/sDEF/lDEF/settings.includeSubCategories/vDEF':
                 case 'data/sDEF/lDEF/settings.topNewsFirst/vDEF':
                 case 'data/sDEF/lDEF/settings.excludeAlreadyDisplayedNews/vDEF':
                 case 'data/sDEF/lDEF/settings.disableOverrideDemand/vDEF':
                     // some defaults
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, 0);
+//                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, 0);
                     break;
                 default:
-                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, '');
+//                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, '');
             }
         }
 
@@ -235,7 +248,8 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
      */
     protected function mapFlexFormValue($path, array &$array, array $map, $key, $throwException = false)
     {
-        if (array_key_exists($key, $map)) {
+        if(!$key) {
+        }elseif (array_key_exists($key, $map)) {
             $value = $map[$key];
             $this->flexFormTools->setArrayValueByPath($path, $array, $value);
         } else if ($throwException) {
