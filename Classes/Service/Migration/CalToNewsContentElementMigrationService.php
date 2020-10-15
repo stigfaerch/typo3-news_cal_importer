@@ -185,14 +185,17 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_List_View/lDEF/usePageBrowser/vDEF', $flexFormCalArray);
                     if(isset($value)) {
                         $value = ($value === '0') ? 1 : 0;
-                        $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
+                    } else {
+                        $value = 1;
                     }
+                    $flexFormNewsPathHidePagination = ['path' => $flexFormNewsPath, 'value' => $value];
                     break;
                 case 'data/additional/lDEF/settings.list.paginate.itemsPerPage/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_List_View/lDEF/recordsPerPage/vDEF', $flexFormCalArray);
                     if(isset($value)) {
                         $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
                     }
+                    $flexFormNewsPathItemsPerPage = ['path' => $flexFormNewsPath, 'value' => $value];
                     break;
                 case 'data/additional/lDEF/settings.detailPid/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_Event_View/lDEF/eventViewPid/vDEF', $flexFormCalArray);
@@ -211,6 +214,10 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
 //                    $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, '');
             }
         }
+        //If recordsPerPage is not defined or 0, hidePagination should be set to true
+        $paginationItemsPerPageNotDefinedOrZero = (($flexFormNewsPathItemsPerPage['value'] ?? false) && $flexFormNewsPathItemsPerPage['value'] > 0);
+        $hidePagination = ((!$paginationItemsPerPageNotDefinedOrZero) || $flexFormNewsPathHidePagination['value'] ?? true) ? 1 : 0;
+        $this->flexFormTools->setArrayValueByPath('data/additional/lDEF/settings.hidePagination/vDEF', $flexFormNewsArray, $hidePagination);
 
         return $this->flexFormTools->flexArray2Xml($flexFormNewsArray, true);
     }
