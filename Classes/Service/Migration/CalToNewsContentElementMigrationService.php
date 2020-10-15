@@ -121,8 +121,9 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
                         [
                             0 => '',
                             1 => 'and',
-                            2 => 'nor',
+                            2 => 'notor',
                             3 => 'or',
+                            4 => 'notand'
                         ],
                         $this->flexFormTools->getArrayValueByPath('data/s_Cat/lDEF/categoryMode/vDEF', $flexFormCalArray)
                     );
