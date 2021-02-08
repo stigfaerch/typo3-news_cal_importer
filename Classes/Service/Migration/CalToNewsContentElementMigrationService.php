@@ -178,6 +178,7 @@ class CalToNewsContentElementMigrationService implements SingletonInterface
                     break;
                 case 'data/additional/lDEF/settings.limit/vDEF':
                     $value = $this->flexFormTools->getArrayValueByPath('data/s_List_View/lDEF/maxEvents/vDEF', $flexFormCalArray);
+                    $value = $value ?: 100;
                     if(isset($value)) {
                         $this->flexFormTools->setArrayValueByPath($flexFormNewsPath, $flexFormNewsArray, $value);
                     }
